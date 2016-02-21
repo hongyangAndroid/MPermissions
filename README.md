@@ -1,9 +1,32 @@
 # MPermissions
 
-a easy API to use runtime permission for Android M — Edit
+基于Annotation Processor的简单易用的处理Android M运行时权限的库。
 
+部分代码来自[PermissionGen](https://github.com/hongyangAndroid/PermissionGen)，
+主要是将其基于运行时注解的实现修改为Annotation Processor的方式，即编译时注解。
 
 ## Usage
+
+* 申请权限
+
+```java
+MPermissions.requestPermissions(MainActivity.this, REQUECT_CODE_SDCARD, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+```
+
+* 处理权限回调
+
+```java
+@Override
+public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
+{
+	MPermissions.onRequestPermissionsResult(this, requestCode, permissions, grantResults);
+	super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+}
+```
+
+授权成功以及失败调用的分支方法通过注解`PermissionGrant`和`PermissionDenied`进行标识，详细参考下面的例子或者sample。
+
+## Sample
 
 * in Activity:
 
