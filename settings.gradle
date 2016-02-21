@@ -1,0 +1,1 @@
+include ':compiler', ':permission-annotation', ':permission-lib', ':permission-sample'
