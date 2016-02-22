@@ -7,7 +7,7 @@
 
 ## 引入
 
-Eclipse和Android Studio下载最近的jar文件导入到项目即可，[下载地址](permission-lib/build/libs/permission-lib.jar)
+Eclipse和Android Studio下载最近的jar文件导入到项目即可，[下载地址](output/mpermissions.jar)
 对于AS别忘了：
 
 ```

@@ -36,7 +36,10 @@ task androidJar(type: Jar) {
             '../compiler/build/libs/compiler.jar')
     from zipTree(
             '../permission-annotation/build/libs/permission-annotation.jar')
+
 }
+
+
 
 // javadoc tasks
 android.libraryVariants.all { variant ->
@@ -61,4 +64,11 @@ publish {
     description = 'a easy API to use runtime permission for Android M'
     website = 'https://github.com/hongyangAndroid/MPermissions'
     licences = ['Apache-2.0']
+}
+
+
+task copyJar(type: Copy) {
+    from('build/libs/permission-lib.jar')
+    into('../output/')
+    rename ('permission-lib.jar', 'mpermissions.jar')
 }
