@@ -5,7 +5,18 @@
 部分代码来自[PermissionGen](https://github.com/hongyangAndroid/PermissionGen)，
 主要是将其基于运行时注解的实现修改为Annotation Processor的方式，即编译时注解。
 
-## Usage
+## 引入
+
+Eclipse和Android Studio下载最近的jar文件导入到项目即可，[下载地址](permission-lib/build/libs/permission-lib.jar)
+对于AS别忘了：
+
+```
+dependencies {
+    compile files('libs/permission-lib.jar')
+}
+```
+
+## 使用
 
 * 申请权限
 
@@ -26,7 +37,7 @@ public void onRequestPermissionsResult(int requestCode, String[] permissions, in
 
 授权成功以及失败调用的分支方法通过注解`PermissionGrant`和`PermissionDenied`进行标识，详细参考下面的例子或者sample。
 
-## Sample
+## 例子
 
 * in Activity:
 
