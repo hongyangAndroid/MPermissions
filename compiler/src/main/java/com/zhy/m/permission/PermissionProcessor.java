@@ -4,6 +4,7 @@ import com.google.auto.service.AutoService;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -17,15 +18,14 @@ import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
 import static javax.lang.model.SourceVersion.latestSupported;
-import static javax.tools.Diagnostic.Kind.ERROR;
 
 @AutoService(Processor.class)
 public class PermissionProcessor extends AbstractProcessor
@@ -48,6 +48,7 @@ public class PermissionProcessor extends AbstractProcessor
         HashSet<String> supportTypes = new LinkedHashSet<>();
         supportTypes.add(PermissionDenied.class.getCanonicalName());
         supportTypes.add(PermissionGrant.class.getCanonicalName());
+        supportTypes.add(ShowRequestPermissionRationale.class.getCanonicalName());
         return supportTypes;
     }
 
@@ -57,80 +58,62 @@ public class PermissionProcessor extends AbstractProcessor
         return latestSupported();
     }
 
+    private boolean processAnnotations(RoundEnvironment roundEnv, Class<? extends Annotation> clazz)
+    {
+        for (Element annotatedElement : roundEnv.getElementsAnnotatedWith(clazz))
+        {
+
+            if (!checkMethodValid(annotatedElement, clazz)) return false;
+
+            ExecutableElement annotatedMethod = (ExecutableElement) annotatedElement;
+            //class type
+            TypeElement classElement = (TypeElement) annotatedMethod.getEnclosingElement();
+            //full class name
+            String fqClassName = classElement.getQualifiedName().toString();
+
+            ProxyInfo proxyInfo = mProxyMap.get(fqClassName);
+            if (proxyInfo == null)
+            {
+                proxyInfo = new ProxyInfo(elementUtils, classElement);
+                mProxyMap.put(fqClassName, proxyInfo);
+                proxyInfo.setTypeElement(classElement);
+            }
+
+
+            Annotation annotation = annotatedMethod.getAnnotation(clazz);
+            if (annotation instanceof PermissionGrant)
+            {
+                int requestCode = ((PermissionGrant) annotation).value();
+                proxyInfo.grantMethodMap.put(requestCode, annotatedMethod.getSimpleName().toString());
+            } else if (annotation instanceof PermissionDenied)
+            {
+                int requestCode = ((PermissionDenied) annotation).value();
+                proxyInfo.deniedMethodMap.put(requestCode, annotatedMethod.getSimpleName().toString());
+            } else if (annotation instanceof ShowRequestPermissionRationale)
+            {
+                int requestCode = ((ShowRequestPermissionRationale) annotation).value();
+                proxyInfo.rationaleMethodMap.put(requestCode, annotatedMethod.getSimpleName().toString());
+            } else
+            {
+                error(annotatedElement, "%s not support .", clazz.getSimpleName());
+                return false;
+            }
+
+        }
+
+        return true;
+    }
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv)
     {
+        mProxyMap.clear();
         messager.printMessage(Diagnostic.Kind.NOTE, "process...");
-        for (Element annotatedElement : roundEnv.getElementsAnnotatedWith(PermissionGrant.class))
-        {
-            // Our grantAnnotation is defined with @Target(value=TYPE). Therefore, we can assume that
-            // this annotatedElement is a TypeElement.
-            ExecutableElement annotatedMethod = (ExecutableElement) annotatedElement;
-//            if (!isValidMethod(annotatedMethod))
-//            {
-//                return true;
-//            }
 
-            //class type
-            TypeElement classElement = (TypeElement) annotatedMethod.getEnclosingElement();
-            //full class name
-            String fqClassName = classElement.getQualifiedName().toString();
-            PackageElement packageElement = elementUtils.getPackageOf(classElement);
-            String packageName = packageElement.getQualifiedName().toString();
-            String className = getClassName(classElement, packageName);
+        if (!processAnnotations(roundEnv, PermissionGrant.class)) return false;
+        if (!processAnnotations(roundEnv, PermissionDenied.class)) return false;
+        if (!processAnnotations(roundEnv, ShowRequestPermissionRationale.class)) return false;
 
-            ProxyInfo proxyInfo = mProxyMap.get(fqClassName);
-            if (proxyInfo == null)
-            {
-                proxyInfo = new ProxyInfo(packageName, className);
-                mProxyMap.put(fqClassName, proxyInfo);
-                proxyInfo.setTypeElement(classElement);
-            }
-
-            PermissionGrant grantAnnotation = annotatedMethod.getAnnotation(PermissionGrant.class);
-            int requestCode = grantAnnotation.value();
-            proxyInfo.grantMethodMap.put(requestCode, annotatedMethod.getSimpleName().toString());
-        }
-
-
-        for (Element annotatedElement : roundEnv.getElementsAnnotatedWith(PermissionDenied.class))
-        {
-            // Our grantAnnotation is defined with @Target(value=TYPE). Therefore, we can assume that
-            // this annotatedElement is a TypeElement.
-            ExecutableElement annotatedMethod = (ExecutableElement) annotatedElement;
-//            if (!isValidMethod(annotatedMethod))
-//            {
-//                return true;
-//            }
-
-            //class type
-            TypeElement classElement = (TypeElement) annotatedMethod.getEnclosingElement();
-
-
-            //full class name
-            String fqClassName = classElement.getQualifiedName().toString();
-            messager.printMessage(Diagnostic.Kind.NOTE, "fqClassName == " + fqClassName);
-
-            PackageElement packageElement = elementUtils.getPackageOf(classElement);
-            String packageName = packageElement.getQualifiedName().toString();
-            String className = getClassName(classElement, packageName);
-
-            messager.printMessage(Diagnostic.Kind.NOTE, "className == " + className);
-
-            ProxyInfo proxyInfo = mProxyMap.get(fqClassName);
-            if (proxyInfo == null)
-            {
-                proxyInfo = new ProxyInfo(packageName, className);
-                mProxyMap.put(fqClassName, proxyInfo);
-                proxyInfo.setTypeElement(classElement);
-            }
-
-
-            PermissionDenied deniedAnnotation = annotatedMethod.getAnnotation(PermissionDenied.class);
-            int requestCode = deniedAnnotation.value();
-            proxyInfo.deniedMethodMap.put(requestCode, annotatedMethod.getSimpleName().toString());
-        }
 
         for (String key : mProxyMap.keySet())
         {
@@ -146,7 +129,7 @@ public class PermissionProcessor extends AbstractProcessor
                 writer.close();
             } catch (IOException e)
             {
-                note(proxyInfo.getTypeElement(),
+                error(proxyInfo.getTypeElement(),
                         "Unable to write injector for type %s: %s",
                         proxyInfo.getTypeElement(), e.getMessage());
             }
@@ -155,7 +138,7 @@ public class PermissionProcessor extends AbstractProcessor
         return true;
     }
 
-    private void note(Element element, String message, Object... args)
+    private void error(Element element, String message, Object... args)
     {
         if (args.length > 0)
         {
@@ -164,35 +147,20 @@ public class PermissionProcessor extends AbstractProcessor
         processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, message, element);
     }
 
-
-    private static String getClassName(TypeElement type, String packageName)
+    private boolean checkMethodValid(Element annotatedElement, Class clazz)
     {
-        int packageLen = packageName.length() + 1;
-        return type.getQualifiedName().toString().substring(packageLen)
-                .replace('.', '$');
-    }
-
-    private boolean isValidMethod(Element annotatedClass)
-    {
-
-        if (!ClassValidator.isPublic(annotatedClass))
+        if (annotatedElement.getKind() != ElementKind.METHOD)
         {
-            String message = String.format("Classes annotated with %s must be public.",
-                    annotatedClass.getSimpleName());
-            messager.printMessage(ERROR, message, annotatedClass);
+            error(annotatedElement, "%s must be declared on method.", clazz.getSimpleName());
             return false;
         }
-
-        if (ClassValidator.isAbstract(annotatedClass))
+        if (ClassValidator.isPrivate(annotatedElement) || ClassValidator.isAbstract(annotatedElement))
         {
-            String message = String.format("Classes annotated with %s must not be abstract.",
-                    annotatedClass.getSimpleName());
-            messager.printMessage(ERROR, message, annotatedClass);
+            error(annotatedElement, "%s() must can not be abstract or private.", annotatedElement.getSimpleName());
             return false;
         }
 
         return true;
     }
-
 
 }

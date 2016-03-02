@@ -10,6 +10,7 @@ import android.widget.Toast;
 import com.zhy.m.permission.MPermissions;
 import com.zhy.m.permission.PermissionDenied;
 import com.zhy.m.permission.PermissionGrant;
+import com.zhy.m.permission.ShowRequestPermissionRationale;
 
 public class MainActivity extends AppCompatActivity
 {
@@ -33,7 +34,11 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v)
             {
-                MPermissions.requestPermissions(MainActivity.this, REQUECT_CODE_SDCARD, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+                if (!MPermissions.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE, REQUECT_CODE_SDCARD))
+                {
+                    MPermissions.requestPermissions(MainActivity.this, REQUECT_CODE_SDCARD, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                }
             }
         });
 
@@ -46,6 +51,15 @@ public class MainActivity extends AppCompatActivity
             }
         });
     }
+
+    @ShowRequestPermissionRationale(REQUECT_CODE_SDCARD)
+    public void whyNeedSdCard()
+    {
+        Toast.makeText(this, "I need write news to sdcard!", Toast.LENGTH_SHORT).show();
+        MPermissions.requestPermissions(MainActivity.this, REQUECT_CODE_SDCARD, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+    }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)

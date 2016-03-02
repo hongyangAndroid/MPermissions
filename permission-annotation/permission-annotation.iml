@@ -27,6 +27,5 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="permission-annotation.permission-annotation" level="project" />
   </component>
 </module>

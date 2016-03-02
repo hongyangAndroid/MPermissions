@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 
 import java.util.ArrayList;
@@ -29,6 +30,19 @@ public class MPermissions
         _requestPermissions(object, requestCode, permissions);
     }
 
+    public static boolean shouldShowRequestPermissionRationale(Activity activity, String permission, int requestCode)
+    {
+        PermissionProxy proxy = findPermissionProxy(activity);
+        if (!proxy.needShowRationale(requestCode)) return false;
+        if (ActivityCompat.shouldShowRequestPermissionRationale(activity,
+                permission))
+        {
+            proxy.rationale(activity, requestCode);
+            return true;
+        }
+        return false;
+    }
+
     @TargetApi(value = Build.VERSION_CODES.M)
     private static void _requestPermissions(Object object, int requestCode, String... permissions)
     {
@@ -51,7 +65,6 @@ public class MPermissions
             {
                 throw new IllegalArgumentException(object.getClass().getName() + " is not supported!");
             }
-
         } else
         {
             doExecuteSuccess(object, requestCode);
@@ -59,14 +72,13 @@ public class MPermissions
     }
 
 
-    private static void doExecuteSuccess(Object activity, int requestCode)
+    private static PermissionProxy findPermissionProxy(Object activity)
     {
-        Class clazz = activity.getClass();
         try
         {
+            Class clazz = activity.getClass();
             Class injectorClazz = Class.forName(clazz.getName() + SUFFIX);
-            PermissionProxy instance = (PermissionProxy) injectorClazz.newInstance();
-            instance.grant(activity, requestCode);
+            return (PermissionProxy) injectorClazz.newInstance();
         } catch (ClassNotFoundException e)
         {
             e.printStackTrace();
@@ -77,26 +89,19 @@ public class MPermissions
         {
             e.printStackTrace();
         }
+        throw new RuntimeException(String.format("can not find %s , something when compiler.", activity.getClass().getSimpleName() + SUFFIX));
+    }
+
+
+    private static void doExecuteSuccess(Object activity, int requestCode)
+    {
+        findPermissionProxy(activity).grant(activity, requestCode);
+
     }
 
     private static void doExecuteFail(Object activity, int requestCode)
     {
-        Class clazz = activity.getClass();
-        try
-        {
-            Class injectorClazz = Class.forName(clazz.getName() + SUFFIX);
-            PermissionProxy instance = (PermissionProxy) injectorClazz.newInstance();
-            instance.denied(activity, requestCode);
-        } catch (ClassNotFoundException e)
-        {
-            e.printStackTrace();
-        } catch (InstantiationException e)
-        {
-            e.printStackTrace();
-        } catch (IllegalAccessException e)
-        {
-            e.printStackTrace();
-        }
+        findPermissionProxy(activity).denied(activity, requestCode);
     }
 
     public static void onRequestPermissionsResult(Activity activity, int requestCode, String[] permissions,

@@ -3,24 +3,29 @@ package com.zhy.m.permission;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Elements;
 
 public class ProxyInfo
 {
     private String packageName;
-    private String targetClassName;
     private String proxyClassName;
     private TypeElement typeElement;
 
     Map<Integer, String> grantMethodMap = new HashMap<>();
     Map<Integer, String> deniedMethodMap = new HashMap<>();
+    Map<Integer, String> rationaleMethodMap = new HashMap<>();
 
     public static final String PROXY = "PermissionProxy";
 
-    public ProxyInfo(String packageName, String className)
+    public ProxyInfo(Elements elementUtils, TypeElement classElement)
     {
+        PackageElement packageElement = elementUtils.getPackageOf(classElement);
+        String packageName = packageElement.getQualifiedName().toString();
+        //classname
+        String className = ClassValidator.getClassName(classElement, packageName);
         this.packageName = packageName;
-        this.targetClassName = className;
         this.proxyClassName = className + "$$" + PROXY;
     }
 
@@ -41,7 +46,7 @@ public class ProxyInfo
         builder.append("public class ").append(proxyClassName).append(" implements " + ProxyInfo.PROXY + "<" + typeElement.getSimpleName() + ">");
         builder.append(" {\n");
 
-        generateInjectMethod(builder);
+        generateMethods(builder);
         builder.append('\n');
 
         builder.append("}\n");
@@ -49,12 +54,65 @@ public class ProxyInfo
 
     }
 
-    private String getTargetClassName()
+
+    private void generateMethods(StringBuilder builder)
     {
-        return targetClassName.replace("$", ".");
+
+        generateGrantMethod(builder);
+        generateDeniedMethod(builder);
+        generateRationaleMethod(builder);
+
+
     }
 
-    private void generateInjectMethod(StringBuilder builder)
+    private void generateRationaleMethod(StringBuilder builder)
+    {
+        builder.append("@Override\n ");
+        builder.append("public void rationale(" + typeElement.getSimpleName() + " source , int requestCode) {\n");
+        builder.append("switch(requestCode) {");
+        for (int code : rationaleMethodMap.keySet())
+        {
+            builder.append("case " + code + ":");
+            builder.append("source." + rationaleMethodMap.get(code) + "();");
+            builder.append("break;");
+        }
+
+        builder.append("}");
+        builder.append("  }\n");
+
+        ///
+
+        builder.append("@Override\n ");
+        builder.append("public boolean needShowRationale(int requestCode) {\n");
+        builder.append("switch(requestCode) {");
+        for (int code : rationaleMethodMap.keySet())
+        {
+            builder.append("case " + code + ":");
+            builder.append("return true;");
+        }
+        builder.append("}\n");
+        builder.append("return false;");
+
+        builder.append("  }\n");
+    }
+
+    private void generateDeniedMethod(StringBuilder builder)
+    {
+        builder.append("@Override\n ");
+        builder.append("public void denied(" + typeElement.getSimpleName() + " source , int requestCode) {\n");
+        builder.append("switch(requestCode) {");
+        for (int code : deniedMethodMap.keySet())
+        {
+            builder.append("case " + code + ":");
+            builder.append("source." + deniedMethodMap.get(code) + "();");
+            builder.append("break;");
+        }
+
+        builder.append("}");
+        builder.append("  }\n");
+    }
+
+    private void generateGrantMethod(StringBuilder builder)
     {
         builder.append("@Override\n ");
         builder.append("public void grant(" + typeElement.getSimpleName() + " source , int requestCode) {\n");
@@ -63,20 +121,6 @@ public class ProxyInfo
         {
             builder.append("case " + code + ":");
             builder.append("source." + grantMethodMap.get(code) + "();");
-            builder.append("break;");
-        }
-
-        builder.append("}");
-        builder.append("  }\n");
-
-
-        builder.append("@Override\n ");
-        builder.append("public void denied(" + typeElement.getSimpleName() + " source , int requestCode) {\n");
-        builder.append("switch(requestCode) {");
-        for (int code : deniedMethodMap.keySet())
-        {
-            builder.append("case " + code + ":");
-            builder.append("source." + deniedMethodMap.get(code) + "();");
             builder.append("break;");
         }
 

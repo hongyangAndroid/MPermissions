@@ -35,7 +35,18 @@ public void onRequestPermissionsResult(int requestCode, String[] permissions, in
 }
 ```
 
-授权成功以及失败调用的分支方法通过注解`PermissionGrant`和`PermissionDenied`进行标识，详细参考下面的例子或者sample。
+* 是否需要弹出解释
+
+```
+if (!MPermissions.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE, REQUECT_CODE_SDCARD))
+{
+    MPermissions.requestPermissions(MainActivity.this, REQUECT_CODE_SDCARD, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+}
+```
+
+如果需要解释，会自动执行使用`@ShowRequestPermissionRationale`注解的方法。
+
+授权成功以及失败调用的分支方法通过注解`@PermissionGrant`和`@PermissionDenied`进行标识，详细参考下面的例子或者sample。
 
 ## 例子
 
