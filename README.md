@@ -7,12 +7,10 @@
 
 ## 引入
 
-Eclipse和Android Studio下载最近的jar文件导入到项目即可，[下载地址](output/mpermissions.jar)
-对于AS别忘了：
-
 ```
 dependencies {
-    compile files('libs/permission-lib.jar')
+    apt 'com.zhy:mpermission-compiler:1.0.0'
+    compile 'com.zhy:mpermission-api:1.0.0'
 }
 ```
 

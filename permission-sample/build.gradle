@@ -26,10 +26,10 @@ dependencies {
 //    compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:23.1.1'
 
-    compile project(':permission-lib')
-    apt project(':compiler')
+//    compile project(':permission-lib')
+//    apt project(':compiler')
 
-    //  apt 'com.zhy:permission-compiler:1.0.0'
-    // compile 'com.zhy:permission-api:1.0.0'
+    apt 'com.zhy:mpermission-compiler:1.0.0'
+    compile 'com.zhy:mpermission-api:1.0.0'
 
 }

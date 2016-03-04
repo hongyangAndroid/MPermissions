@@ -56,16 +56,15 @@ android.libraryVariants.all { variant ->
 
 
 publish {
-    artifactId = 'mpermissions'
-    userOrg = 'hongyangandroid'
-    groupId = 'com.zhy'
-    uploadName = "MPermissions-SNAPSHOT"
-    publishVersion = '1.0.0'
-    description = 'a easy API to use runtime permission for Android M'
-    website = 'https://github.com/hongyangAndroid/MPermissions'
-    licences = ['Apache-2.0']
+    artifactId = 'mpermission-api'
+    userOrg = rootProject.userOrg
+    groupId = rootProject.groupId
+    uploadName = rootProject.uploadName
+    publishVersion = rootProject.publishVersion
+    description = rootProject.description
+    website = rootProject.website
+    licences = rootProject.licences
 }
-
 
 task copyJar(type: Copy) {
     from('build/libs/permission-lib.jar')

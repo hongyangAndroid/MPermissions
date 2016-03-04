@@ -20,5 +20,15 @@ allprojects {
     }
 }
 
+ext {
+    userOrg = 'hongyangandroid'
+    groupId = 'com.zhy'
+    uploadName = 'MPermission'
+    publishVersion = '1.0.0'
+    description = 'a easy API to use runtime permission for Android M '
+    website = 'https://github.com/hongyangAndroid/MPermissions'
+    licences = ['Apache-2.0']
+}
+
 
 

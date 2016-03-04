@@ -1,4 +1,16 @@
 apply plugin: 'java'
+apply plugin: 'bintray-release'
 sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
 
+
+publish {
+    artifactId = 'mpermission-annotation'
+    userOrg = rootProject.userOrg
+    groupId = rootProject.groupId
+    uploadName = rootProject.uploadName
+    publishVersion = rootProject.publishVersion
+    description = rootProject.description
+    website = rootProject.website
+    licences = rootProject.licences
+}
