@@ -5,6 +5,8 @@ package com.zhy.m.permission;
  */
 public interface PermissionProxy<T>
 {
+    void got(T source, int requestCode);
+
     void grant(T source, int requestCode);
 
     void denied(T source, int requestCode);

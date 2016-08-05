@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import com.zhy.m.permission.MPermissions;
 import com.zhy.m.permission.PermissionDenied;
+import com.zhy.m.permission.PermissionGot;
 import com.zhy.m.permission.PermissionGrant;
 import com.zhy.m.permission.ShowRequestPermissionRationale;
 
@@ -68,6 +69,10 @@ public class MainActivity extends AppCompatActivity
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
+    @PermissionGot(REQUECT_CODE_SDCARD)
+    public void sdCardAlreadyGot() {
+        Toast.makeText(this, "GOT ACCESS SDCARD!", Toast.LENGTH_SHORT).show();
+    }
 
     @PermissionGrant(REQUECT_CODE_SDCARD)
     public void requestSdcardSuccess()

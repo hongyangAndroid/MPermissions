@@ -3,7 +3,7 @@ apply plugin: 'com.neenbedankt.android-apt'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.1"
+    buildToolsVersion "23.0.3"
 
     defaultConfig {
         applicationId "com.zhy.permission_sample"
@@ -30,10 +30,10 @@ dependencies {
 //    compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:23.1.1'
 
-//    compile project(':permission-lib')
-//    apt project(':compiler')
+    compile project(':permission-lib')
+    apt project(':compiler')
 
-    apt 'com.zhy:mpermission-compiler:1.0.0'
-    compile 'com.zhy:mpermission-api:1.0.0'
+//    apt 'com.zhy:mpermission-compiler:1.0.0'
+//    compile 'com.zhy:mpermission-api:1.0.0'
 
 }
