@@ -48,7 +48,8 @@ public class MPermissions
     {
         if (!Utils.isOverMarshmallow())
         {
-            doExecuteSuccess(object, requestCode);
+//            doExecuteSuccess(object, requestCode);
+            doExecuteGot(object, requestCode);
             return;
         }
         List<String> deniedPermissions = Utils.findDeniedPermissions(Utils.getActivity(object), permissions);
@@ -67,7 +68,8 @@ public class MPermissions
             }
         } else
         {
-            doExecuteSuccess(object, requestCode);
+            doExecuteGot(object, requestCode);
+//            doExecuteSuccess(object, requestCode);
         }
     }
 
@@ -92,6 +94,10 @@ public class MPermissions
         throw new RuntimeException(String.format("can not find %s , something when compiler.", activity.getClass().getSimpleName() + SUFFIX));
     }
 
+
+    private static void doExecuteGot(Object activity, int requestCode) {
+        findPermissionProxy(activity).got(activity, requestCode);
+    }
 
     private static void doExecuteSuccess(Object activity, int requestCode)
     {
